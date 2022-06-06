@@ -1,0 +1,84 @@
+// Control commands - create tables
+
+.create table Tweets (IngestTimestamp: datetime, TweetTimestamp: datetime, TweetId: long, AuthorId: long, ConversationId: long, InReplyTo: long, Text: string, Likes: int, Comments: int)
+
+.create table Users (IngestTimestamp: datetime, CreatedTimestamp: datetime, UserId: long, UserAlias: string, UserPrettyName: string, Bio: string, PinnedTweetId: long, Followers: int, Following: int, Tweets: int, IsVerified: bool)
+
+.create table Follows (IngestTimestamp: datetime, FollowingUserId: long, FollowingUserAlias: string, FollowingUserPrettyName: string, FollowedUserId: long, FollowedUserAlias: string, FollowedUserPrettyName: string)
+
+.create table Likes (IngestTimestamp: datetime, LikingUserId: long, LikingUserAlias: string, LikingUserPrettyName: string, TweetId: long, AuthorId: long, AuthorAlias: string, AuthorPrettyName: string)
+
+
+// Queries
+
+// 1. Followers with most followers
+let YourFollowers=Follows | where FollowedUserAlias == "<your_alias>" | project FollowingUserId;
+let YourFollowerCount=YourFollowers | count;
+Users
+| where UserId in (YourFollowers)
+| where Followers > toscalar(YourFollowerCount)
+| sort by Followers
+| take 10
+| project-away IngestTimestamp, CreatedTimestamp, UserId, Bio, PinnedTweetId, Following, Tweets
+
+// 2. People who liked more than 10% of your posts
+let YourPosts=Tweets | where AuthorId == <your_user_id> | count;
+Likes
+| summarize count() by LikingUserAlias
+| extend ratio=todouble(count_)/toscalar(YourPosts)*100
+| where ratio > 10
+| count
+
+// 3. Length of Threads
+Tweets
+| where AuthorId == <your_user_id>
+| where InReplyTo == <your_user_id> or isempty(InReplyTo)
+| summarize sum(Likes), ThreadLength=count() by ConversationId
+| summarize TotalLikes=sum(sum_Likes), Count=count() by ThreadLength
+| sort by ThreadLength asc
+
+// 4. Percentage of conversations you started (exc. replies)
+Tweets
+| where AuthorId == <your_user_id>
+| summarize AllTweets=count(), ExcludingComments=countif(ConversationId == TweetId)
+| extend Ratio=todouble(ExcludingComments)/AllTweets*100
+| extend RatioStr=strcat(substring(tostring(Ratio), 0, 5), \"%\")
+| project RatioStr
+
+// 5. Most liked threads
+Tweets
+| where AuthorId == <your_user_id>
+| where InReplyTo == <your_user_id> or isempty(InReplyTo)
+| summarize FirstTweetId=arg_min(TweetId, Text), TotalLikes=sum(Likes), ThreadLength=count() by ConversationId
+| extend FirstTweetId=tostring(FirstTweetId)
+| top 10 by TotalLikes
+| project-away ConversationId
+| project-reorder Text, TotalLikes, ThreadLength, FirstTweetId
+
+// 6. Distinct people who liked your posts
+Likes
+| where AuthorAlias == "<your_user_alias>"
+| summarize dcount(LikingUserAlias)
+
+// 7. Tweets by Hour of Day (IDT)
+Tweets
+| where AuthorId == <your_user_id>
+| summarize Count=count() by HourOfDay=toint(hourofday(TweetTimestamp))+3
+| sort by HourOfDay asc
+
+// 8. Posts per week (exc. replies)
+Tweets
+| where AuthorId == <your_user_id>
+| where ConversationId == TweetId
+| summarize count() by bin(TweetTimestamp, 7d)
+
+// 9. Percentage of followers you follow back
+let FollowedByYou=Follows 
+| where FollowingUserAlias == "your_user_alias"
+| project FollowedUserAlias;
+Follows
+| where FollowedUserAlias == "your_user_alias"
+| summarize count(), countif(FollowingUserAlias in (FollowedByYou))
+| extend Ratio=todouble(countif_)/count_*100
+| extend RatioStr=strcat(substring(tostring(Ratio), 0, 5), \"%\")
+| project RatioStr
