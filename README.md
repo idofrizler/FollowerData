@@ -28,5 +28,10 @@
 14. Once you have your queries, you can add tiles as you wish.
 15. `Kusto-commands.txt` contains some suggested queries (you'll still need to visualize those when you build the tile).
 
+#### Alternative (not tested yet)
+16. I also added a template: `dashboard-twitter-stats.json` that you can edit and upload as a pre-cooked dashboard. 
+    1. It is not tested, but I believe you'll need to edit `clusterUri` with your cluster's address before uploading.
+    2. Also, you'll need to edit the `<your_user_id>` and `<user-alias>` params referenced in the queries (you should be able to do that after uploading the dashboard, from the website).
+
 ## Notes
-16. The current code only queries up to your most recent 3200 tweets. It's a Twitter API limitation that can be extended (by adding time filters on the main query), but does not exist in current version.
+17. The current code only queries up to your most recent 3200 tweets. It's a Twitter API limitation that can be extended (by adding time filters on the main query), but does not exist in current version.
