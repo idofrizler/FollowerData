@@ -1,4 +1,6 @@
 # Twitter statistics - Fun with Kusto!
+## Demo
+![redacted_dashboard.png](redacted_dashboard.png)
 
 ## Installation
 ### Twitter setup
