@@ -319,6 +319,31 @@
 				"colorRules": [],
 				"colorStyle": "light"
 			}
+		},
+		{
+			"id": "06df2fb5-ba9d-435f-aeed-e57a7d6afe3f",
+			"title": "Likes per tweet (exc. replies)",
+			"query": "let YourConversations=Tweets\n| where AuthorId == <your_user_id>\n| where ConversationId == TweetId\n| project ConversationId;\nTweets\n| where ConversationId in (YourConversations) and (isempty(InReplyTo) or InReplyTo == <your_user_id>)\n| summarize TweetCount=count(), TotalLikes=sum(Likes)\n| extend LikesPerTweet=todouble(TotalLikes)/TweetCount\n| extend LikesPerTweetStr=substring(tostring(LikesPerTweet), 0, 5)\n| project LikesPerTweetStr",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "card",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 22,
+				"width": 7,
+				"height": 3
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multiStat__textSize": "large",
+				"multiStat__valueColumn": {
+					"type": "infer"
+				},
+				"colorRulesDisabled": false,
+				"colorRules": [],
+				"colorStyle": "light"
+			}
 		}
 	],
 	"dataSources": [

@@ -82,3 +82,15 @@ Follows
 | extend Ratio=todouble(countif_)/count_*100
 | extend RatioStr=strcat(substring(tostring(Ratio), 0, 5), \"%\")
 | project RatioStr
+
+// 10. Likes per tweet (exc. replies)
+let YourConversations=Tweets
+| where AuthorId == <your_user_id>
+| where ConversationId == TweetId
+| project ConversationId;
+Tweets
+| where ConversationId in (YourConversations) and (isempty(InReplyTo) or InReplyTo == <your_user_id>)
+| summarize TweetCount=count(), TotalLikes=sum(Likes)
+| extend LikesPerTweet=todouble(TotalLikes)/TweetCount
+| extend LikesPerTweetStr=substring(tostring(LikesPerTweet), 0, 5)
+| project LikesPerTweetStr
