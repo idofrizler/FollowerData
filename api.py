@@ -1,7 +1,8 @@
 import os
 import requests
-import urls
 from time import sleep
+
+import urls
 
 
 def get_twitter_token():

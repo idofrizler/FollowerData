@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-
 import pandas
 from azure.kusto.data import KustoConnectionStringBuilder, DataFormat, KustoClient
 from azure.kusto.data.helpers import dataframe_from_result_table
