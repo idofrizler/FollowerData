@@ -1,0 +1,361 @@
+{
+	"$schema": "https://dataexplorer.azure.com/static/d/schema/23/dashboard.json",
+	"id": "7b5d5792-f633-43b1-9c57-8e5de929794a",
+	"eTag": "eXoBnbkqdDp6yoynZCAq5A==",
+	"title": "Twitter statistics",
+	"tiles": [
+		{
+			"id": "c71b5d12-e9f4-43b6-8479-637875157bd0",
+			"title": "Followers with most followers",
+			"query": "let YourFollowers=Follows | where FollowedUserAlias == \"<your-alias>\" | project FollowingUserId;\nlet YourFollowerCount=YourFollowers | count;\nUsers\n| where UserId in (YourFollowers)\n| where Followers > toscalar(YourFollowerCount)\n| sort by Followers\n| take 10\n| project-away IngestTimestamp, CreatedTimestamp, UserId, Bio, PinnedTweetId, Following, Tweets",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "table",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 14,
+				"width": 7,
+				"height": 8
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"table__enableRenderLinks": true,
+				"table__renderLinksForColumns": [],
+				"colorRules": [],
+				"colorRulesDisabled": true,
+				"colorStyle": "light",
+				"crossFilterDisabled": false,
+				"drillthroughDisabled": false,
+				"crossFilter": [],
+				"drillthrough": []
+			}
+		},
+		{
+			"id": "3d7397be-3779-41b4-8ce3-1b9b70425238",
+			"title": "People who liked more than 10% of your posts",
+			"query": "let YourPosts=Tweets | where AuthorId == <your_user_id> | count;\nLikes\n| summarize count() by LikingUserAlias\n| extend ratio=todouble(count_)/toscalar(YourPosts)*100\n| where ratio > 10\n| count",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "card",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 25,
+				"width": 7,
+				"height": 3
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multiStat__textSize": "large",
+				"multiStat__valueColumn": {
+					"type": "infer"
+				},
+				"colorRulesDisabled": true,
+				"colorRules": [],
+				"colorStyle": "light"
+			}
+		},
+		{
+			"id": "e29b3954-9a32-41a1-b6ed-c5232b9f7651",
+			"title": "Length of Threads",
+			"query": "Tweets \n| where AuthorId == <your_user_id>\n| where InReplyTo == <your_user_id> or isempty(InReplyTo)\n| summarize sum(Likes), ThreadLength=count() by ConversationId\n| summarize TotalLikes=sum(sum_Likes), Count=count() by ThreadLength\n| sort by ThreadLength asc",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "area",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 0,
+				"y": 8,
+				"width": 9,
+				"height": 8
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multipleYAxes": {
+					"base": {
+						"id": "-1",
+						"label": "Total # of Likes",
+						"columns": [],
+						"yAxisMaximumValue": null,
+						"yAxisMinimumValue": null,
+						"yAxisScale": "log",
+						"horizontalLines": []
+					},
+					"additional": [
+						{
+							"id": "eb810bb0-ffc0-49da-a6f8-f171f9a313ab",
+							"columns": [
+								"Count"
+							],
+							"label": "Number of threads posted",
+							"yAxisMaximumValue": null,
+							"yAxisMinimumValue": null,
+							"yAxisScale": "log",
+							"horizontalLines": []
+						}
+					]
+				},
+				"hideLegend": false,
+				"xColumnTitle": "Thread Length",
+				"xColumn": {
+					"type": "specified",
+					"value": "ThreadLength"
+				},
+				"yColumns": {
+					"type": "specified",
+					"value": [
+						"TotalLikes",
+						"Count"
+					]
+				},
+				"seriesColumns": {
+					"type": "infer"
+				},
+				"xAxisScale": "linear",
+				"verticalLine": "",
+				"crossFilterDisabled": false,
+				"drillthroughDisabled": false,
+				"crossFilter": [],
+				"drillthrough": []
+			}
+		},
+		{
+			"id": "6210eb8c-aea7-41ba-a131-052decce958d",
+			"title": "Percentage of conversations you started (exc. replies)",
+			"query": "Tweets\n| where AuthorId == <your_user_id>\n| summarize AllTweets=count(), ExcludingComments=countif(ConversationId == TweetId)\n| extend Ratio=todouble(ExcludingComments)/AllTweets*100\n| extend RatioStr=strcat(substring(tostring(Ratio), 0, 5), \"%\")\n| project RatioStr",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "card",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 8,
+				"width": 7,
+				"height": 3
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multiStat__textSize": "large",
+				"multiStat__valueColumn": {
+					"type": "infer"
+				},
+				"colorRulesDisabled": true,
+				"colorRules": [],
+				"colorStyle": "light"
+			}
+		},
+		{
+			"id": "cf8dff36-911c-4220-87ae-90a2b9c5440b",
+			"title": "Most liked threads",
+			"query": "Tweets \n| where AuthorId == <your_user_id>\n| where InReplyTo == <your_user_id> or isempty(InReplyTo)\n| summarize FirstTweetId=arg_min(TweetId, Text), TotalLikes=sum(Likes), ThreadLength=count() by ConversationId\n| extend FirstTweetId=tostring(FirstTweetId)\n| top 10 by TotalLikes\n| project-away ConversationId\n| project-reorder Text, TotalLikes, ThreadLength, FirstTweetId",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "table",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 0,
+				"y": 0,
+				"width": 16,
+				"height": 8
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"table__enableRenderLinks": true,
+				"table__renderLinksForColumns": [],
+				"colorRules": [],
+				"colorRulesDisabled": true,
+				"colorStyle": "light",
+				"crossFilterDisabled": false,
+				"drillthroughDisabled": false,
+				"crossFilter": [],
+				"drillthrough": []
+			}
+		},
+		{
+			"id": "80d57015-696b-4cbe-b4e4-f3d315678925",
+			"title": "Distinct people who liked your posts",
+			"query": "Likes\n| where AuthorAlias == \"<your_user_alias>\"\n| summarize dcount(LikingUserAlias)",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "card",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 22,
+				"width": 7,
+				"height": 3
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multiStat__textSize": "large",
+				"multiStat__valueColumn": {
+					"type": "infer"
+				},
+				"colorRulesDisabled": true,
+				"colorRules": [],
+				"colorStyle": "light"
+			}
+		},
+		{
+			"id": "48cbdb51-0594-45bd-a45f-bff07afac80a",
+			"title": "Tweets by Hour of Day (IDT)",
+			"query": "Tweets \n| where AuthorId == <your_user_id>\n| summarize Count=count() by HourOfDay=toint(hourofday(TweetTimestamp))+3\n| sort by HourOfDay asc",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "column",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 0,
+				"y": 16,
+				"width": 9,
+				"height": 7
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multipleYAxes": {
+					"base": {
+						"id": "-1",
+						"label": "",
+						"columns": [],
+						"yAxisMaximumValue": null,
+						"yAxisMinimumValue": null,
+						"yAxisScale": "linear",
+						"horizontalLines": []
+					},
+					"additional": []
+				},
+				"hideLegend": false,
+				"xColumnTitle": "",
+				"xColumn": {
+					"type": "specified",
+					"value": "HourOfDay"
+				},
+				"yColumns": {
+					"type": "specified",
+					"value": [
+						"Count"
+					]
+				},
+				"seriesColumns": {
+					"type": "infer"
+				},
+				"xAxisScale": "linear",
+				"verticalLine": "",
+				"crossFilterDisabled": false,
+				"drillthroughDisabled": false,
+				"crossFilter": [],
+				"drillthrough": []
+			}
+		},
+		{
+			"id": "ec25b5d8-19ab-45fb-9e59-da6ae7fefaab",
+			"title": "Posts per week (exc. replies)",
+			"query": "Tweets \n| where AuthorId == <your_user_id>\n| where ConversationId == TweetId\n| summarize count() by bin(TweetTimestamp, 7d)",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "timechart",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 0,
+				"y": 23,
+				"width": 9,
+				"height": 7
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multipleYAxes": {
+					"base": {
+						"id": "-1",
+						"label": "",
+						"columns": [],
+						"yAxisMaximumValue": null,
+						"yAxisMinimumValue": null,
+						"yAxisScale": "linear",
+						"horizontalLines": []
+					},
+					"additional": []
+				},
+				"hideLegend": false,
+				"xColumnTitle": "",
+				"xColumn": {
+					"type": "infer"
+				},
+				"yColumns": {
+					"type": "infer"
+				},
+				"seriesColumns": {
+					"type": "infer"
+				},
+				"xAxisScale": "linear",
+				"verticalLine": "",
+				"crossFilterDisabled": false,
+				"drillthroughDisabled": false,
+				"crossFilter": [],
+				"drillthrough": []
+			}
+		},
+		{
+			"id": "884f45f6-becb-49a7-b587-f4e97ead6508",
+			"title": "Percentage of followers you follow back",
+			"query": "let FollowedByYou=Follows \n| where FollowingUserAlias == \"<your-alias>\" \n| project FollowedUserAlias;\nFollows\n| where FollowedUserAlias == \"<your-alias>\" \n| summarize count(), countif(FollowingUserAlias in (FollowedByYou))\n| extend Ratio=todouble(countif_)/count_*100\n| extend RatioStr=strcat(substring(tostring(Ratio), 0, 5), \"%\")\n| project RatioStr",
+			"dataSourceId": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"visualType": "card",
+			"pageId": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d",
+			"layout": {
+				"x": 9,
+				"y": 11,
+				"width": 7,
+				"height": 3
+			},
+			"usedParamVariables": [],
+			"visualOptions": {
+				"hideTileTitle": false,
+				"multiStat__textSize": "large",
+				"multiStat__valueColumn": {
+					"type": "infer"
+				},
+				"colorRulesDisabled": false,
+				"colorRules": [],
+				"colorStyle": "light"
+			}
+		}
+	],
+	"dataSources": [
+		{
+			"id": "237c1a97-f35c-4fa2-ae87-6a91edd273a8",
+			"name": "MyFreeCluster",
+			"clusterUri": "https://<your-cluster>.kusto.windows.net/",
+			"database": "FollowerData",
+			"kind": "manual-kusto",
+			"scopeId": "kusto"
+		}
+	],
+	"schema_version": "23",
+	"autoRefresh": {
+		"enabled": false
+	},
+	"parameters": [
+		{
+			"kind": "duration",
+			"id": "1f19d9f0-84c9-4df9-9cfc-484a489c6893",
+			"displayName": "Time range",
+			"beginVariableName": "_startTime",
+			"endVariableName": "_endTime",
+			"defaultValue": {
+				"kind": "dynamic",
+				"count": 1,
+				"unit": "hours"
+			},
+			"showOnPages": {
+				"kind": "all"
+			}
+		}
+	],
+	"pages": [
+		{
+			"name": "Page 1",
+			"id": "f4ddbf93-b3f2-4cbc-af7b-43dc3054c10d"
+		}
+	]
+}
